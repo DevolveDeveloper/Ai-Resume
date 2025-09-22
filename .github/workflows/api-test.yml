@@ -10,6 +10,21 @@ jobs:
   test-backend:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: resume_api
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -22,10 +37,26 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Set environment variables
+        run: |
+          echo "PORT=${{ secrets.PORT }}" >> $GITHUB_ENV
+          echo "OPENAI_KEY=${{ secrets.OPENAI_KEY }}" >> $GITHUB_ENV
+          echo "ASSEMBLYAI_KEY=${{ secrets.ASSEMBLYAI_KEY }}" >> $GITHUB_ENV
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> $GITHUB_ENV
+          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> $GITHUB_ENV
+          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> $GITHUB_ENV
+          echo "LINKEDIN_API_KEY=${{ secrets.LINKEDIN_API_KEY }}" >> $GITHUB_ENV
+          echo "CANVA_API_KEY=${{ secrets.CANVA_API_KEY }}" >> $GITHUB_ENV
+          echo "SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}" >> $GITHUB_ENV
+          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> $GITHUB_ENV
+
       - name: Start backend server
         run: |
           nohup npm run dev & 
           sleep 5 # wait for server to start
+
+      - name: Install jq for JSON formatting
+        run: sudo apt-get install -y jq
 
       - name: Run API tests
         run: chmod +x ./backend/test_api.sh && ./backend/test_api.sh
