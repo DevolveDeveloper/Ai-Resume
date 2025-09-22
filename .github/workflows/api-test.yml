@@ -1,0 +1,34 @@
+name: API Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Start backend server
+        run: |
+          nohup npm run dev & 
+          sleep 5 # wait for server to start
+
+      - name: Run API tests
+        run: chmod +x ./backend/test_api.sh && ./backend/test_api.sh
+
+      - name: Stop backend server
+        run: pkill node
